@@ -112,7 +112,7 @@ class SocialBrowserActivity : Activity() {
     private fun buildScreen() {
         container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(background)
+            setBackgroundColor(this@SocialBrowserActivity.background)
             layoutDirection = View.LAYOUT_DIRECTION_RTL
         }
         setContentView(container)
@@ -152,7 +152,7 @@ class SocialBrowserActivity : Activity() {
 
         webView = WebView(this).apply {
             visibility = View.GONE
-            setBackgroundColor(background)
+            setBackgroundColor(this@SocialBrowserActivity.background)
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -169,8 +169,8 @@ class SocialBrowserActivity : Activity() {
             CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
             webChromeClient = object : WebChromeClient() {
                 override fun onProgressChanged(view: WebView?, newProgress: Int) {
-                    progress.visibility = if (newProgress < 100) View.VISIBLE else View.GONE
-                    progress.progress = newProgress
+                    this@SocialBrowserActivity.progress.visibility = if (newProgress < 100) View.VISIBLE else View.GONE
+                    this@SocialBrowserActivity.progress.progress = newProgress
                 }
             }
             webViewClient = object : WebViewClient() {
@@ -186,7 +186,7 @@ class SocialBrowserActivity : Activity() {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     if (url != null) address.setText(url)
-                    progress.visibility = View.GONE
+                    this@SocialBrowserActivity.progress.visibility = View.GONE
                 }
             }
         }
@@ -210,7 +210,7 @@ class SocialBrowserActivity : Activity() {
     }
 
     private fun createHome(): ScrollView = ScrollView(this).apply {
-        fillViewport = true
+        isFillViewport = true
         val content = LinearLayout(this@SocialBrowserActivity).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(12), dp(12), dp(12), dp(12))
@@ -253,7 +253,7 @@ class SocialBrowserActivity : Activity() {
     private fun showHome() {
         home.visibility = View.VISIBLE
         webView.visibility = View.GONE
-        progress.visibility = View.GONE
+        this@SocialBrowserActivity.progress.visibility = View.GONE
         address.setText("")
     }
 

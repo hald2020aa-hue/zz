@@ -31,6 +31,14 @@ jobs:
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Prepare Android local.properties
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${ANDROID_HOME:-}"
+          printf "sdk.dir=%s\n" "$ANDROID_HOME" > local.properties
+          touch keystore.properties
+
       - name: Build upstream YTDLnis engine + ZZ browser
         run: |
           chmod +x ./gradlew

@@ -1,0 +1,60 @@
+name: ZZ Media - arm64 Debug APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout full source
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install SDK 36
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build upstream YTDLnis engine + ZZ browser
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon :app:assembleGithubDebug --stacktrace
+
+      - name: Verify actual APK and prepare arm64 artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          APK="$(find app/build/outputs/apk/github/debug -maxdepth 1 -type f -name '*arm64-v8a*.apk' | head -n 1)"
+          test -n "$APK" && test -s "$APK"
+          unzip -tq "$APK"
+          unzip -p "$APK" classes.dex >/dev/null
+          BYTES=$(stat -c %s "$APK")
+          test "$BYTES" -gt 15000000 || { echo "APK suspiciously small ($BYTES bytes); stopping."; exit 1; }
+          cp "$APK" dist/zz-arm64-v8a-debug.apk
+          (cd dist && sha256sum zz-arm64-v8a-debug.apk > SHA256SUMS.txt)
+          echo "APK_READY=dist/zz-arm64-v8a-debug.apk" >> "$GITHUB_ENV"
+
+      - name: Upload only the arm64 APK and checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZZ-Media-arm64-v8a-debug
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
